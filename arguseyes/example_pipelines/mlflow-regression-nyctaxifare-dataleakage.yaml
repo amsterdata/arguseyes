@@ -1,0 +1,9 @@
+series: development
+artifact_storage_uri: ${PWD}/mlruns/
+
+pipeline:
+  path: ${PWD}/arguseyes/example_pipelines/mlflow-regression-nyctaxifare.py
+  template: classification
+  detect_issues:
+    - issue:
+        name: data_leakage
