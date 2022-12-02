@@ -5,7 +5,14 @@
 
 We provide three example scenarios (Note that you have to locally install ArgusEyes first to execute them). You can run ArgusEyes to execute the pipeline and screen it for a particular issue issue:
 
- - Detecting **mislabeled images** in a [computer vision pipeline](arguseyes/example_pipelines/mlinspect-computervision-sneakers.py): <br/> `./eyes arguseyes/example_pipelines/mlinspect-computervision-sneakers-labelerrors.yaml`
+### Label errors: detecting mislabeled image in a computer vision pipeline
+ 
+  * Source code of the ML pipeline [mlinspect-computervision-sneakers.py](pipelines/mlinspect-computervision-sneakers.py)
+  * Screening configuration: [mlinspect-computervision-sneakers-labelerrors.yaml](mlinspect-computervision-sneakers-labelerrors.yaml)
+  * [Github workflow run detecting the label errors](https://github.com/amsterdata/arguseyes-demo/actions/runs/3602119501/jobs/6068693150)
+  * Manual screening: `./eyes arguseyes/example_pipelines/mlinspect-computervision-sneakers-labelerrors.yaml`
+  * Notebook for retrospective debugging: [retrospective_labelerrors.ipynb](retrospective_labelerrors.ipynb)
+
  
  
  - Spotting **data leakage** in a [price prediction pipeline](arguseyes/example_pipelines/mlflow-regression-nyctaxifare.py): <br/> `./eyes arguseyes/example_pipelines/mlflow-regression-nyctaxifare-dataleakage.yaml`
