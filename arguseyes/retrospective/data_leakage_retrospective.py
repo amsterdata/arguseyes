@@ -1,5 +1,6 @@
 import mlflow
 import pickle
+import pandas as pd
 
 
 class DataLeakageRetrospective:
@@ -19,19 +20,42 @@ class DataLeakageRetrospective:
             for elem in polynomial:
                 inputs_required.add(elem.operator_id)
 
-        if len(inputs_required) > 1:
-            raise ValueError('Reconstruction of leaked tuples from multiple inputs not implemented yet.')
+        if len(inputs_required) == 1:
+            leaked_tuple_ids = []
+            for polynomial in leaked_tuples_provenance:
+                for elem in polynomial:
+                    leaked_tuple_ids.append(elem.row_id)
 
-        leaked_tuple_ids = set()
-        for polynomial in leaked_tuples_provenance:
-            for elem in polynomial:
-                leaked_tuple_ids.add(elem.row_id)
+            input_index = list(inputs_required)[0]
+            return self.load_partial_tuples(input_index, leaked_tuple_ids)
 
-        input_index = list(inputs_required)[0]
+        else:
 
+            partials = []
+
+            for input_index in inputs_required:
+                leaked_tuple_ids = []
+                for polynomial in leaked_tuples_provenance:
+                    for elem in polynomial:
+                        if elem.operator_id == input_index:
+                            leaked_tuple_ids.append(elem.row_id)
+
+                partial_data = self.load_partial_tuples(input_index, leaked_tuple_ids)
+                partials.append(partial_data)
+
+            combined = pd.concat(partials, axis=1)
+            # TODO this is based on duplicate column names only, should also check column contents
+            combined = combined.loc[:, ~combined.columns.duplicated()].copy()
+            return combined
+
+    def load_partial_tuples(self, input_index, leaked_tuple_ids):
         data = self.pipeline_run.load_input_with_provenance(input_index)
-        has_been_leaked = lambda p: [polynomial[0]['row_id'] in leaked_tuple_ids for polynomial in p]
 
-        leaked_data = data[has_been_leaked(data['mlinspect_lineage'])]
-        leaked_data = leaked_data.drop(columns=['mlinspect_lineage'])
-        return leaked_data
+        data['row_id'] = data.apply(lambda row: row['mlinspect_lineage'][0]['row_id'], axis=1)
+        ids = pd.DataFrame.from_dict({'row_id': leaked_tuple_ids})
+
+        partial_tuples = ids.merge(data, on='row_id')
+        partial_tuples = partial_tuples.drop(columns=['row_id', 'mlinspect_lineage'])
+
+        return partial_tuples
+
